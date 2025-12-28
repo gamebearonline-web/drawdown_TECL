@@ -71,7 +71,13 @@ def fetch_snapshot(symbol: str) -> Snapshot:
     if "Close" not in df.columns:
         raise RuntimeError(f"'Close' column not found for {symbol}: {df.columns}")
 
-    close = df["Close"].dropna()
+    close = df["Close"]
+
+    # ★ここが最重要：必ず Series にする
+    if hasattr(close, "columns"):
+        close = close.iloc[:, 0]
+
+    close = close.dropna()
 
     if len(close) < 60:
         raise RuntimeError(f"Not enough data for {symbol}: {len(close)} rows")
@@ -94,6 +100,7 @@ def fetch_snapshot(symbol: str) -> Snapshot:
         peak_value=peak_value,
         drawdown=dd,
     )
+
 
 
 
