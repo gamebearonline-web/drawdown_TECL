@@ -56,29 +56,36 @@ def run(cmd: list[str]) -> str:
 
 
 def fetch_snapshot(symbol: str) -> Snapshot:
-    df = yf.download(symbol, period=HISTORY_PERIOD, interval="1d", auto_adjust=True, progress=False)
+    df = yf.download(
+        symbol,
+        period=HISTORY_PERIOD,
+        interval="1d",
+        auto_adjust=True,
+        progress=False,
+        group_by="column",   # ★重要
+    )
+
     if df is None or df.empty:
         raise RuntimeError(f"Failed to fetch data for {symbol}")
 
-    # Close列を取り出し
-    if isinstance(df.columns, pd.MultiIndex):
-        # まれにマルチインデックスになるケース対応
-        close = df["Close"].droplevel(0, axis=1) if "Close" in df.columns.get_level_values(0) else df.iloc[:, 0]
-    else:
-        close = df["Close"]
+    # --- ここが修正ポイント ---
+    if "Close" not in df.columns:
+        raise RuntimeError(f"'Close' column not found for {symbol}: {df.columns}")
 
-    close = close.dropna()
+    close = df["Close"].dropna()
+
     if len(close) < 60:
         raise RuntimeError(f"Not enough data for {symbol}: {len(close)} rows")
 
     tail = close.iloc[-LOOKBACK_TRADING_DAYS:]
+
     peak_value = float(tail.max())
     peak_date = tail.idxmax().date().isoformat()
 
     last_value = float(tail.iloc[-1])
     last_date = tail.index[-1].date().isoformat()
 
-    dd = (last_value / peak_value) - 1.0  # negative when below peak
+    dd = (last_value / peak_value) - 1.0
 
     return Snapshot(
         last_date=last_date,
@@ -87,6 +94,7 @@ def fetch_snapshot(symbol: str) -> Snapshot:
         peak_value=peak_value,
         drawdown=dd,
     )
+
 
 
 def decide_level(drawdown: float, levels: list[float]) -> int | None:
