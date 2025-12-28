@@ -8,7 +8,7 @@ title = f"[TEST] Drawdown mention test {datetime.now(timezone.utc).isoformat(tim
 body = f"@{MENTION_ID}\n\nこれは通知テストです（BOTの動作確認用）。"
 
 subprocess.run(
-    ["gh", "issue", "create", "--title", title, "--body", body, "--label", "drawdown-alert"],
+    ["gh", "issue", "create", "--title", title, "--body", body],
     check=True
 )
 
