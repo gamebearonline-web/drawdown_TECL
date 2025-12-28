@@ -27,13 +27,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install yfinance pandas
 
-      - name: Test mention issue (one-shot)
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          MENTION_ID: BiscuitBlueBear
-        run: |
-          python scripts/test_mention.py
-
       - name: Run checker (create issues with mention)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
