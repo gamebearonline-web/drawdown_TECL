@@ -62,13 +62,12 @@ def fetch_snapshot(symbol: str) -> Snapshot:
         interval="1d",
         auto_adjust=True,
         progress=False,
-        group_by="column",   # ★重要
+        group_by="column",
     )
 
     if df is None or df.empty:
         raise RuntimeError(f"Failed to fetch data for {symbol}")
 
-    # --- ここが修正ポイント ---
     if "Close" not in df.columns:
         raise RuntimeError(f"'Close' column not found for {symbol}: {df.columns}")
 
@@ -79,11 +78,12 @@ def fetch_snapshot(symbol: str) -> Snapshot:
 
     tail = close.iloc[-LOOKBACK_TRADING_DAYS:]
 
-    peak_value = float(tail.max())
-    peak_date = tail.idxmax().date().isoformat()
+    peak_idx = tail.idxmax()
+    peak_value = float(tail.loc[peak_idx])
+    peak_date = pd.to_datetime(peak_idx).date().isoformat()
 
     last_value = float(tail.iloc[-1])
-    last_date = tail.index[-1].date().isoformat()
+    last_date = pd.to_datetime(tail.index[-1]).date().isoformat()
 
     dd = (last_value / peak_value) - 1.0
 
@@ -94,6 +94,7 @@ def fetch_snapshot(symbol: str) -> Snapshot:
         peak_value=peak_value,
         drawdown=dd,
     )
+
 
 
 
